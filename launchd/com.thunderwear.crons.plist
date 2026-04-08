@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.thunderwear.crons</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/openclawadmin/thunderwear-dev/scripts/cron-runner.sh</string>
+  </array>
+
+  <!-- Run every hour (3600 seconds) -->
+  <key>StartInterval</key>
+  <integer>3600</integer>
+
+  <!-- Run at system load if missed -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <!-- Every hour: HH:00 -->
+    <dict>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <!-- Every hour + 30 min: HH:30 (tail scanner) -->
+    <dict>
+      <key>Minute</key>
+      <integer>30</integer>
+    </dict>
+    <!-- 7am ET daily: execute trades (dry-run by default) -->
+    <dict>
+      <key>Hour</key>
+      <integer>11</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <!-- 2am ET daily: backtest + settlement backfill -->
+    <dict>
+      <key>Hour</key>
+      <integer>6</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+  </array>
+
+  <!-- Keep alive: restart if process dies -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <!-- Redirect output to log files -->
+  <key>StandardOutPath</key>
+  <string>/Users/openclawadmin/thunderwear-dev/logs/crons.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/openclawadmin/thunderwear-dev/logs/crons-error.log</string>
+
+  <!-- Run as user (not root) -->
+  <key>UserName</key>
+  <string>openclawadmin</string>
+
+  <!-- Run in user's home directory context -->
+  <key>WorkingDirectory</key>
+  <string>/Users/openclawadmin/thunderwear-dev</string>
+
+  <!-- Environment variables -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin</string>
+    <key>HOME</key>
+    <string>/Users/openclawadmin</string>
+    <key>DRY_RUN</key>
+    <string>true</string>
+  </dict>
+
+  <!-- Low priority: don't interfere with user work -->
+  <key>Nice</key>
+  <integer>10</integer>
+
+  <!-- Throttle restarts if they keep failing -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+</dict>
+</plist>
