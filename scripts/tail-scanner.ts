@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { VERIFIED_KALSHI_CITIES } from './city-registry';
 
 // Load .env file — dotenv may not be installed; fall back to manual parse
 try {
@@ -47,33 +48,7 @@ if (!KALSHI_API_KEY) {
   console.warn('⚠️  KALSHI_API_KEY not set — market prices will be null (graceful degrade)');
 }
 
-// KALSHI_STATIONS — CONFIRMED via live Kalshi API (2026-04-07)
-// Removed cities NOT found in live API: San Diego, Fort Worth, San Jose, Jacksonville, Columbus, Charlotte, Indianapolis, Nashville
-// Added cities confirmed in live API: Miami, Minneapolis, Atlanta, Boston, Washington DC, Las Vegas, New Orleans, Oklahoma City
-// Ticker corrections: Chicago KXHIGHCHI (not KXHIGHTCHI), Philadelphia KXHIGHPHIL (not KXHIGHTPHL), Austin KXHIGHAUS (not KXHIGHTAUS), Denver KXHIGHDEN (not KXHIGHTDEN)
-const KALSHI_STATIONS = [
-  { stationId: 'KNYC',  kalshiTicker: 'KXHIGHNY',    kalshiCode: 'nyc',  city: 'New York' },
-  { stationId: 'KMDW',  kalshiTicker: 'KXHIGHCHI',   kalshiCode: 'chi',  city: 'Chicago' },
-  { stationId: 'KLAX',  kalshiTicker: 'KXHIGHLAX',   kalshiCode: 'lax',  city: 'Los Angeles' },
-  { stationId: 'KHOU',  kalshiTicker: 'KXHIGHTHOU',  kalshiCode: 'hou',  city: 'Houston' },
-  { stationId: 'KPHX',  kalshiTicker: 'KXHIGHTPHX',  kalshiCode: 'phx',  city: 'Phoenix' },
-  { stationId: 'KPHL',  kalshiTicker: 'KXHIGHPHIL',  kalshiCode: 'phl',  city: 'Philadelphia' },
-  { stationId: 'KSAT',  kalshiTicker: 'KXHIGHTSATX', kalshiCode: 'satx', city: 'San Antonio' },
-  { stationId: 'KDFW',  kalshiTicker: 'KXHIGHTDAL',  kalshiCode: 'dal',  city: 'Dallas' },
-  { stationId: 'KAUS',  kalshiTicker: 'KXHIGHAUS',   kalshiCode: 'aus',  city: 'Austin' },
-  { stationId: 'KSFO',  kalshiTicker: 'KXHIGHTSFO',  kalshiCode: 'sfo',  city: 'San Francisco' },
-  { stationId: 'KSEA',  kalshiTicker: 'KXHIGHTSEA',  kalshiCode: 'sea',  city: 'Seattle' },
-  { stationId: 'KDEN',  kalshiTicker: 'KXHIGHDEN',   kalshiCode: 'den',  city: 'Denver' },
-  // Confirmed in live Kalshi API — not in original spec
-  { stationId: 'KMIA',  kalshiTicker: 'KXHIGHMIA',   kalshiCode: 'mia',  city: 'Miami' },
-  { stationId: 'KMSP',  kalshiTicker: 'KXHIGHTMIN',  kalshiCode: 'min',  city: 'Minneapolis' },
-  { stationId: 'KATL',  kalshiTicker: 'KXHIGHTTATL', kalshiCode: 'tatl', city: 'Atlanta' },
-  { stationId: 'KBOS',  kalshiTicker: 'KXHIGHTBOS',  kalshiCode: 'bos',  city: 'Boston' },
-  { stationId: 'KDCA',  kalshiTicker: 'KXHIGHTDC',   kalshiCode: 'dc',   city: 'Washington DC' },
-  { stationId: 'KLAS',  kalshiTicker: 'KXHIGHTLV',   kalshiCode: 'lv',   city: 'Las Vegas' },
-  { stationId: 'KMSY',  kalshiTicker: 'KXHIGHTNOLA', kalshiCode: 'nola', city: 'New Orleans' },
-  { stationId: 'KOKC',  kalshiTicker: 'KXHIGHTOKC',  kalshiCode: 'okc',  city: 'Oklahoma City' },
-];
+// City registry imported from city-registry.ts — VERIFIED_KALSHI_CITIES is the single source of truth.
 
 interface TailOpportunity {
   ticker: string;
@@ -279,7 +254,7 @@ async function scanForTailOpportunities(): Promise<TailScanReport> {
     .split('T')[0];
 
   for (const pred of predictions) {
-    const station = KALSHI_STATIONS.find(s => s.stationId === pred.stationId);
+    const station = VERIFIED_KALSHI_CITIES.find(s => s.stationId === pred.stationId);
     if (!station) continue;
 
     const meanTemp = pred.predictedTemp;
@@ -328,7 +303,7 @@ async function scanForTailOpportunities(): Promise<TailScanReport> {
 
         opportunities.push({
           ticker,
-          kalshiCode: station.kalshiCode,
+          kalshiCode: station.stationId.slice(1).toLowerCase(), // derived from ICAO station id
           city: station.city,
           marketType,
           settlementDate,
