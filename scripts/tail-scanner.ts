@@ -41,33 +41,38 @@ const SUPABASE_ANON_KEY =
   '';
 
 const KALSHI_API_KEY = process.env.KALSHI_API_KEY || null;
-const KALSHI_BASE_URL = 'https://trading-api.kalshi.com/trade-api/v2';
+const KALSHI_BASE_URL = 'https://api.elections.kalshi.com/trade-api/v2';
 
 if (!KALSHI_API_KEY) {
   console.warn('⚠️  KALSHI_API_KEY not set — market prices will be null (graceful degrade)');
 }
 
+// KALSHI_STATIONS — CONFIRMED via live Kalshi API (2026-04-07)
+// Removed cities NOT found in live API: San Diego, Fort Worth, San Jose, Jacksonville, Columbus, Charlotte, Indianapolis, Nashville
+// Added cities confirmed in live API: Miami, Minneapolis, Atlanta, Boston, Washington DC, Las Vegas, New Orleans, Oklahoma City
+// Ticker corrections: Chicago KXHIGHCHI (not KXHIGHTCHI), Philadelphia KXHIGHPHIL (not KXHIGHTPHL), Austin KXHIGHAUS (not KXHIGHTAUS), Denver KXHIGHDEN (not KXHIGHTDEN)
 const KALSHI_STATIONS = [
-  { stationId: 'KNYC', kalshiCode: 'nyc', city: 'New York' },
-  { stationId: 'KBOS', kalshiCode: 'bos', city: 'Boston' },
-  { stationId: 'KPHL', kalshiCode: 'phl', city: 'Philadelphia' },
-  { stationId: 'KDCA', kalshiCode: 'dc', city: 'Washington DC' },
-  { stationId: 'KMIA', kalshiCode: 'mia', city: 'Miami' },
-  { stationId: 'KORD', kalshiCode: 'chi', city: 'Chicago' },
-  { stationId: 'KDFW', kalshiCode: 'dal', city: 'Dallas' },
-  { stationId: 'KHOU', kalshiCode: 'hou', city: 'Houston' },
-  { stationId: 'KLAX', kalshiCode: 'lax', city: 'Los Angeles' },
-  { stationId: 'KSFO', kalshiCode: 'sfo', city: 'San Francisco' },
-  { stationId: 'KSEA', kalshiCode: 'sea', city: 'Seattle' },
-  { stationId: 'KDEN', kalshiCode: 'den', city: 'Denver' },
-  { stationId: 'KPHX', kalshiCode: 'phx', city: 'Phoenix' },
-  { stationId: 'KMSP', kalshiCode: 'msp', city: 'Minneapolis' },
-  { stationId: 'KATL', kalshiCode: 'atl', city: 'Atlanta' },
-  { stationId: 'KDTW', kalshiCode: 'det', city: 'Detroit' },
-  { stationId: 'KLAS', kalshiCode: 'lv', city: 'Las Vegas' },
-  { stationId: 'KPDX', kalshiCode: 'pdx', city: 'Portland' },
-  { stationId: 'KSAN', kalshiCode: 'san', city: 'San Diego' },
-  { stationId: 'KCLT', kalshiCode: 'clt', city: 'Charlotte' },
+  { stationId: 'KNYC',  kalshiTicker: 'KXHIGHNY',    kalshiCode: 'nyc',  city: 'New York' },
+  { stationId: 'KMDW',  kalshiTicker: 'KXHIGHCHI',   kalshiCode: 'chi',  city: 'Chicago' },
+  { stationId: 'KLAX',  kalshiTicker: 'KXHIGHLAX',   kalshiCode: 'lax',  city: 'Los Angeles' },
+  { stationId: 'KHOU',  kalshiTicker: 'KXHIGHTHOU',  kalshiCode: 'hou',  city: 'Houston' },
+  { stationId: 'KPHX',  kalshiTicker: 'KXHIGHTPHX',  kalshiCode: 'phx',  city: 'Phoenix' },
+  { stationId: 'KPHL',  kalshiTicker: 'KXHIGHPHIL',  kalshiCode: 'phl',  city: 'Philadelphia' },
+  { stationId: 'KSAT',  kalshiTicker: 'KXHIGHTSATX', kalshiCode: 'satx', city: 'San Antonio' },
+  { stationId: 'KDFW',  kalshiTicker: 'KXHIGHTDAL',  kalshiCode: 'dal',  city: 'Dallas' },
+  { stationId: 'KAUS',  kalshiTicker: 'KXHIGHAUS',   kalshiCode: 'aus',  city: 'Austin' },
+  { stationId: 'KSFO',  kalshiTicker: 'KXHIGHTSFO',  kalshiCode: 'sfo',  city: 'San Francisco' },
+  { stationId: 'KSEA',  kalshiTicker: 'KXHIGHTSEA',  kalshiCode: 'sea',  city: 'Seattle' },
+  { stationId: 'KDEN',  kalshiTicker: 'KXHIGHDEN',   kalshiCode: 'den',  city: 'Denver' },
+  // Confirmed in live Kalshi API — not in original spec
+  { stationId: 'KMIA',  kalshiTicker: 'KXHIGHMIA',   kalshiCode: 'mia',  city: 'Miami' },
+  { stationId: 'KMSP',  kalshiTicker: 'KXHIGHTMIN',  kalshiCode: 'min',  city: 'Minneapolis' },
+  { stationId: 'KATL',  kalshiTicker: 'KXHIGHTTATL', kalshiCode: 'tatl', city: 'Atlanta' },
+  { stationId: 'KBOS',  kalshiTicker: 'KXHIGHTBOS',  kalshiCode: 'bos',  city: 'Boston' },
+  { stationId: 'KDCA',  kalshiTicker: 'KXHIGHTDC',   kalshiCode: 'dc',   city: 'Washington DC' },
+  { stationId: 'KLAS',  kalshiTicker: 'KXHIGHTLV',   kalshiCode: 'lv',   city: 'Las Vegas' },
+  { stationId: 'KMSY',  kalshiTicker: 'KXHIGHTNOLA', kalshiCode: 'nola', city: 'New Orleans' },
+  { stationId: 'KOKC',  kalshiTicker: 'KXHIGHTOKC',  kalshiCode: 'okc',  city: 'Oklahoma City' },
 ];
 
 interface TailOpportunity {
@@ -77,8 +82,11 @@ interface TailOpportunity {
   marketType: 'high' | 'low';
   settlementDate: string;
   strikeTemp: number;
-  twProbability: number; // TW's estimated probability (0-100)
-  marketPrice: number | null; // Live Kalshi price (probability 0-1), null if API unavailable
+  twProbability: number;    // TW's estimated probability (0-100)
+  twProbabilityDecimal: number; // TW prob as 0-1 for Kelly math
+  marketPrice: number | null;   // Live Kalshi price (probability 0-1), null if API unavailable
+  edge: number | null;          // |twProb - marketPrice| in decimal, null if no price
+  kellyFraction: number;        // 1/3 Kelly fraction (0-0.05 cap, 0 = no trade)
   stdDev: number;
   predictedTemp: number;
   ciWidth: number;
@@ -97,6 +105,36 @@ interface TailScanReport {
 
 function getSupabase(): SupabaseClient {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+/**
+ * True Kelly criterion for binary contracts.
+ * Formula: f* = (p - c) / (1 - c)
+ *   p = TW probability (exceedance prob, 0-1)
+ *   c = Kalshi yes_ask price (cost to buy YES, 0-1)
+ * Applies 1/3 fractional Kelly for safety, capped at 5% bankroll.
+ *
+ * Returns 0 if:
+ *   - marketPrice is null (can't size without a price)
+ *   - f* <= 0 (no edge — don't trade)
+ */
+export function computeKelly(twProb: number, marketPrice: number | null): number {
+  if (marketPrice === null || marketPrice === undefined) return 0;
+
+  // Avoid division by zero when marketPrice == 1 (fully priced YES)
+  if (marketPrice >= 1) return 0;
+
+  // Full Kelly: f* = (p - c) / (1 - c)
+  const fStar = (twProb - marketPrice) / (1 - marketPrice);
+
+  // No edge or negative edge — don't trade
+  if (fStar <= 0) return 0;
+
+  // Fractional Kelly (1/3) for safety
+  const kellyFraction = fStar / 3;
+
+  // Hard cap: never risk more than 5% of bankroll on a single trade
+  return Math.min(kellyFraction, 0.05);
 }
 
 /**
@@ -144,13 +182,16 @@ async function fetchKalshiMarketPrice(ticker: string): Promise<number | null> {
       return null;
     }
 
-    const priceCents = market.yes_ask_dollars ?? market.yes_bid_dollars ?? market.last_price_dollars ?? null;
+    // Field names per Kalshi API v2 spec (confirmed in Mia's tracking-spec-v3.md Section 4)
+    // Fields are in CENTS (integer, 0-100), NOT dollars
+    // Priority: yes_ask > last_price > yes_bid
+    const priceCents = market.yes_ask ?? market.last_price ?? market.yes_bid ?? null;
 
     if (priceCents === null || priceCents === undefined) {
       return null;
     }
 
-    return priceCents / 100; // Convert cents to probability
+    return priceCents / 100; // Convert cents to probability (0-1)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`⚠️  Failed to fetch Kalshi price for ${ticker}: ${msg}`);
@@ -175,12 +216,11 @@ async function getTodayPredictions(
   }>
 > {
   const { data, error } = await client
-    .from('weather_predictions')
+    .from('tw_hourly_forecasts')
     .select(
-      'predicted_temp_high, std_dev, confidence_interval_low, confidence_interval_high, predicted_at, source_services'
+      'city, station_id, predicted_temp_high_bias_corrected, std_dev, confidence_interval_low, confidence_interval_high, target_date'
     )
-    .eq('prediction_type', 'kalshi_temp')
-    .order('predicted_at', { ascending: false })
+    .order('target_date', { ascending: false })
     .limit(100); // generous limit, we'll dedup by station
 
   if (error || !data) {
@@ -200,22 +240,18 @@ async function getTodayPredictions(
   }> = [];
 
   for (const row of data) {
-    const sid = row.source_services?.stationId;
+    const sid = row.station_id;
     if (!sid || seen.has(sid)) continue;
     seen.add(sid);
 
-    // Map stationId to city
-    const station = KALSHI_STATIONS.find(s => s.stationId === sid);
-    const city = station?.city || 'Unknown';
-
     results.push({
       stationId: sid,
-      predictedTemp: row.predicted_temp_high,
+      predictedTemp: row.predicted_temp_high_bias_corrected,
       stdDev: row.std_dev,
       ciLow: row.confidence_interval_low,
       ciHigh: row.confidence_interval_high,
-      city,
-      predictedAt: row.predicted_at,
+      city: row.city,
+      predictedAt: row.target_date,
     });
   }
 
@@ -268,14 +304,27 @@ async function scanForTailOpportunities(): Promise<TailScanReport> {
 
       if (twProb >= 5 && twProb <= 95) {
         // Only include non-trivial probabilities
-        const ticker = `KXHIGHT${station.kalshiCode.toUpperCase()}-26APR-${strike}`;
+        const today = new Date();
+        const targetDate = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        const year = String(targetDate.getUTCFullYear()).slice(-2);
+        const monthAbbr = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][targetDate.getUTCMonth()];
+        const day = String(targetDate.getUTCDate()).padStart(2, '0');
+        const ticker = `${station.kalshiTicker}-${year}${monthAbbr}${day}-${strike}`;
 
         // Fetch live Kalshi market price
         const marketPrice = await fetchKalshiMarketPrice(ticker);
 
-        const notes = wideCI
+        // True Kelly sizing (1/3 fractional, 5% cap)
+        const twProbDecimal = twProb / 100;
+        const kellyFraction = computeKelly(twProbDecimal, marketPrice);
+        const edge = marketPrice !== null ? Math.abs(twProbDecimal - marketPrice) : null;
+
+        const kellyNote = kellyFraction > 0
+          ? ` | Kelly=${(kellyFraction * 100).toFixed(2)}%`
+          : ' | Kelly=0 (no edge)';
+        const notes = (wideCI
           ? `Wide CI (stdDev=${stdDev}°F, width=${ciWidth}°F) — potential mispricing`
-          : `CI width=${ciWidth}°F`;
+          : `CI width=${ciWidth}°F`) + kellyNote;
 
         opportunities.push({
           ticker,
@@ -285,7 +334,10 @@ async function scanForTailOpportunities(): Promise<TailScanReport> {
           settlementDate,
           strikeTemp: strike,
           twProbability: twProb,
-          marketPrice, // Live price or null
+          twProbabilityDecimal: twProbDecimal,
+          marketPrice,
+          edge,
+          kellyFraction,
           stdDev,
           predictedTemp: meanTemp,
           ciWidth,
