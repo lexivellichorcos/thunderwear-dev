@@ -1,0 +1,233 @@
+{
+  "KNYC": {
+    "city": "New York",
+    "station_id": "KNYC",
+    "name": "New York/Central Park",
+    "kalshi_series": [
+      "KXHIGHNY",
+      "KXHIGHNY0",
+      "KXRAINNYC",
+      "KXLOWNYC"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 42.1
+  },
+  "KBOS": {
+    "city": "Boston",
+    "station_id": "KBOS",
+    "name": "Boston/Logan Intl",
+    "kalshi_series": [
+      "KXHIGHTBOS"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 39.9
+  },
+  "KPHL": {
+    "city": "Philadelphia",
+    "station_id": "KPHL",
+    "name": "Philadelphia Intl",
+    "kalshi_series": [
+      "KXHIGHPHIL",
+      "KXRAINPHI",
+      "KXLOWPHIL"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 48.9
+  },
+  "KDCA": {
+    "city": "Washington DC",
+    "station_id": "KDCA",
+    "name": "Ronald Reagan Washington",
+    "kalshi_series": [
+      "KXHIGHTDC",
+      "KXRAINTDC"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 73.0
+  },
+  "KMIA": {
+    "city": "Miami",
+    "station_id": "KMIA",
+    "name": "Miami Intl",
+    "kalshi_series": [
+      "KXHIGHMIA",
+      "KXLOWTMIA",
+      "KXRAINMIA"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 73.9
+  },
+  "KORD": {
+    "city": "Chicago",
+    "station_id": "KORD",
+    "name": "Chicago O'Hare Intl",
+    "kalshi_series": [
+      "KXHIGHCHI",
+      "KXLOWTCHI"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 39.9
+  },
+  "KDFW": {
+    "city": "Dallas",
+    "station_id": "KDFW",
+    "name": "Dallas/Fort Worth Intl",
+    "kalshi_series": [
+      "KXHIGHTDFW"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 53.1
+  },
+  "KHOU": {
+    "city": "Houston",
+    "station_id": "KHOU",
+    "name": "William P. Hobby Airport",
+    "kalshi_series": [
+      "KXHIGHTHOU",
+      "KXHIGHHOU"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 64.9
+  },
+  "KLAX": {
+    "city": "Los Angeles",
+    "station_id": "KLAX",
+    "name": "Los Angeles Intl",
+    "kalshi_series": [
+      "KXHIGHLAX"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 62.1
+  },
+  "KSFO": {
+    "city": "San Francisco",
+    "station_id": "KSFO",
+    "name": "San Francisco Intl",
+    "kalshi_series": [
+      "KXHIGHTSFO"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 62.1
+  },
+  "KSEA": {
+    "city": "Seattle",
+    "station_id": "KSEA",
+    "name": "Seattle-Tacoma Intl",
+    "kalshi_series": [
+      "KXHIGHTSEA",
+      "KXRAINSEA"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 51.1
+  },
+  "KDEN": {
+    "city": "Denver",
+    "station_id": "KDEN",
+    "name": "Denver Intl",
+    "kalshi_series": [
+      "KXHIGHDEN"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 35.1
+  },
+  "KPHX": {
+    "city": "Phoenix",
+    "station_id": "KPHX",
+    "name": "Phoenix Sky Harbor Intl",
+    "kalshi_series": [
+      "KXHIGHTPHX"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 73.9
+  },
+  "KMSP": {
+    "city": "Minneapolis",
+    "station_id": "KMSP",
+    "name": "Minneapolis-Saint Paul Intl",
+    "kalshi_series": [
+      "KXHIGHTMIN"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 30.9
+  },
+  "KATL": {
+    "city": "Atlanta",
+    "station_id": "KATL",
+    "name": "Hartsfield-Jackson Atlanta Intl",
+    "kalshi_series": [
+      "KXHIGHTATL"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 66.9
+  },
+  "KDTW": {
+    "city": "Detroit",
+    "station_id": "KDTW",
+    "name": "Detroit Metropolitan Wayne County",
+    "kalshi_series": [
+      "KXHIGHTDET"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 41.0
+  },
+  "KLAS": {
+    "city": "Las Vegas",
+    "station_id": "KLAS",
+    "name": "Harry Reid Intl",
+    "kalshi_series": [
+      "KXHIGHTLV"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 62.1
+  },
+  "KPDX": {
+    "city": "Portland",
+    "station_id": "KPDX",
+    "name": "Portland Intl",
+    "kalshi_series": [
+      "KXHIGHTPDX"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 53.1
+  },
+  "KSAN": {
+    "city": "San Diego",
+    "station_id": "KSAN",
+    "name": "San Diego Intl",
+    "kalshi_series": [
+      "KXHIGHTSAN"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 61.0
+  },
+  "KCLT": {
+    "city": "Charlotte",
+    "station_id": "KCLT",
+    "name": "Charlotte Douglas Intl",
+    "kalshi_series": [
+      "KXHIGHTCLT"
+    ],
+    "verified": true,
+    "last_check": "2026-04-05T08:00:00Z",
+    "last_temp_f": 64.9
+  }
+}

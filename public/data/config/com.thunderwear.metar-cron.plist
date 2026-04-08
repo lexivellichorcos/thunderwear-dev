@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.thunderwear.metar-cron</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/node</string>
+        <string>/usr/local/bin/npx</string>
+        <string>tsx</string>
+        <string>/Users/openclawadmin/thunderwear/scripts/start-metar-scheduler.ts</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/openclawadmin/thunderwear</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>1800</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/openclawadmin/thunderwear/data/logs/metar-cron.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/openclawadmin/thunderwear/data/logs/metar-cron-error.log</string>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

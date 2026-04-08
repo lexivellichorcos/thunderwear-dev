@@ -1,0 +1,18 @@
+{
+  "alerts": [
+    {
+      "city": "New York",
+      "station": "KNYC",
+      "divergence": 5.2,
+      "direction": "bullish",
+      "timestamp": "2026-04-08T12:30:00Z"
+    },
+    {
+      "city": "Chicago",
+      "station": "KMDW",
+      "divergence": -3.1,
+      "direction": "bearish",
+      "timestamp": "2026-04-08T12:15:00Z"
+    }
+  ]
+}

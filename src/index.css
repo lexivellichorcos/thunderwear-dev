@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Thunderwear.AI futuristic color palette */
+    --background: 220 25% 97%;
+    --foreground: 220 40% 8%;
+
+    --card: 220 20% 98%;
+    --card-foreground: 220 40% 8%;
+
+    --popover: 220 20% 98%;
+    --popover-foreground: 220 40% 8%;
+
+    /* Electric blue primary theme */
+    --primary: 213 94% 68%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 190 100% 60%;
+
+    /* Minimalist secondary */
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 220 40% 8%;
+
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 10% 50%;
+
+    /* Cyan accent colors */
+    --accent: 190 100% 60%;
+    --accent-foreground: 220 40% 8%;
+
+    /* Storm warning colors */
+    --destructive: 0 100% 67%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Weather alert colors */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Rain/storm colors */
+    --storm: 240 100% 25%;
+    --storm-foreground: 0 0% 100%;
+
+    /* Weather-specific colors */
+    --frost: 200 90% 60%;
+    --sun: 45 100% 55%;
+    --cloud: 220 10% 65%;
+
+    --border: 210 20% 85%;
+    --input: 210 20% 95%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 30% 6%;
+    --foreground: 220 20% 95%;
+
+    --card: 220 25% 8%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 220 25% 8%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 213 94% 68%;
+    --primary-foreground: 220 30% 6%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Thunderwear.AI futuristic gradients and effects */
+  .weather-gradient {
+    background: linear-gradient(135deg, hsl(213 94% 68%), hsl(190 100% 60%));
+  }
+
+  .thunderwear-gradient {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  }
+
+  .glass-morphism {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .weather-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .weather-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -12px hsl(var(--primary) / 0.25);
+  }
+
+  /* Responsive weather icons */
+  .weather-icon {
+    filter: drop-shadow(0 4px 8px hsl(var(--primary) / 0.2));
+  }
+
+  /* Mobile-optimized animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .pulse-soft {
+      animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse-soft {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.8;
+      }
+    }
+  }
+}

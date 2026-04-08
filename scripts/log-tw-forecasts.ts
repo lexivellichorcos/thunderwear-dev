@@ -44,7 +44,7 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ofwgmzfdgvazflqhk
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 const KALSHI_API_KEY = process.env.KALSHI_API_KEY || '';
-const KALSHI_BASE_URL = 'https://trading-api.kalshi.com/trade-api/v2';
+const KALSHI_BASE_URL = 'https://api.elections.kalshi.com/trade-api/v2';
 
 if (!SUPABASE_SERVICE_KEY) {
   console.warn('⚠️  SUPABASE_SERVICE_KEY not set — using anon key (may hit RLS)');
@@ -65,27 +65,32 @@ interface KalshiStation {
   location: string;       // For simple-forecast API geocoding
 }
 
+// CONFIRMED via live Kalshi API (2026-04-07)
+// Removed: San Diego, Fort Worth, San Jose, Jacksonville, Columbus, Charlotte, Indianapolis, Nashville (NOT FOUND in live API)
+// Added: Miami, Minneapolis, Atlanta, Boston, Washington DC, Las Vegas, New Orleans, Oklahoma City (confirmed in live API)
+// Ticker corrections: Chicago KXHIGHCHI, LA KXHIGHLAX, Philadelphia KXHIGHPHIL, Austin KXHIGHAUS, Denver KXHIGHDEN
 const KALSHI_STATIONS: KalshiStation[] = [
-  { city: 'New York',      stationId: 'KNYC', kalshiTicker: 'KXHIGHNY',  location: 'New York, NY' },
-  { city: 'Chicago',       stationId: 'KMDW', kalshiTicker: 'KXHIGHTCHI', location: 'Chicago, IL' },
-  { city: 'Los Angeles',   stationId: 'KLAX', kalshiTicker: 'KXHIGHTLA',  location: 'Los Angeles, CA' },
-  { city: 'Houston',       stationId: 'KHOU', kalshiTicker: 'KXHIGHTHOU', location: 'Houston, TX' },
-  { city: 'Phoenix',       stationId: 'KPHX', kalshiTicker: 'KXHIGHTPHX', location: 'Phoenix, AZ' },
-  { city: 'Philadelphia',  stationId: 'KPHL', kalshiTicker: 'KXHIGHTPHL', location: 'Philadelphia, PA' },
-  { city: 'San Antonio',   stationId: 'KSAT', kalshiTicker: 'KXHIGHTSAT', location: 'San Antonio, TX' },
-  { city: 'San Diego',     stationId: 'KSAN', kalshiTicker: 'KXHIGHTSAN', location: 'San Diego, CA' },
-  { city: 'Dallas',        stationId: 'KDFW', kalshiTicker: 'KXHIGHTDAL', location: 'Dallas, TX' },
-  { city: 'Fort Worth',    stationId: 'KDFW', kalshiTicker: 'KXHIGHTFTW', location: 'Fort Worth, TX' },
-  { city: 'San Jose',      stationId: 'KSJC', kalshiTicker: 'KXHIGHTSJO', location: 'San Jose, CA' },
-  { city: 'Austin',        stationId: 'KAUS', kalshiTicker: 'KXHIGHTAUS', location: 'Austin, TX' },
-  { city: 'Jacksonville',  stationId: 'KJAX', kalshiTicker: 'KXHIGHTJAX', location: 'Jacksonville, FL' },
-  { city: 'Columbus',      stationId: 'KCMH', kalshiTicker: 'KXHIGHTCMH', location: 'Columbus, OH' },
-  { city: 'Charlotte',     stationId: 'KCLT', kalshiTicker: 'KXHIGHTCLT', location: 'Charlotte, NC' },
-  { city: 'Indianapolis',  stationId: 'KIND', kalshiTicker: 'KXHIGHTIND', location: 'Indianapolis, IN' },
-  { city: 'San Francisco', stationId: 'KSFO', kalshiTicker: 'KXHIGHTSFO', location: 'San Francisco, CA' },
-  { city: 'Seattle',       stationId: 'KSEA', kalshiTicker: 'KXHIGHTSEA', location: 'Seattle, WA' },
-  { city: 'Denver',        stationId: 'KDEN', kalshiTicker: 'KXHIGHTDEN', location: 'Denver, CO' },
-  { city: 'Nashville',     stationId: 'KBNA', kalshiTicker: 'KXHIGHTNSH', location: 'Nashville, TN' },
+  { city: 'New York',       stationId: 'KNYC', kalshiTicker: 'KXHIGHNY',    location: 'New York, NY' },
+  { city: 'Chicago',        stationId: 'KMDW', kalshiTicker: 'KXHIGHCHI',   location: 'Chicago, IL' },
+  { city: 'Los Angeles',    stationId: 'KLAX', kalshiTicker: 'KXHIGHLAX',   location: 'Los Angeles, CA' },
+  { city: 'Houston',        stationId: 'KHOU', kalshiTicker: 'KXHIGHTHOU',  location: 'Houston, TX' },
+  { city: 'Phoenix',        stationId: 'KPHX', kalshiTicker: 'KXHIGHTPHX',  location: 'Phoenix, AZ' },
+  { city: 'Philadelphia',   stationId: 'KPHL', kalshiTicker: 'KXHIGHPHIL',  location: 'Philadelphia, PA' },
+  { city: 'San Antonio',    stationId: 'KSAT', kalshiTicker: 'KXHIGHTSATX', location: 'San Antonio, TX' },
+  { city: 'Dallas',         stationId: 'KDFW', kalshiTicker: 'KXHIGHTDAL',  location: 'Dallas, TX' },
+  { city: 'Austin',         stationId: 'KAUS', kalshiTicker: 'KXHIGHAUS',   location: 'Austin, TX' },
+  { city: 'San Francisco',  stationId: 'KSFO', kalshiTicker: 'KXHIGHTSFO',  location: 'San Francisco, CA' },
+  { city: 'Seattle',        stationId: 'KSEA', kalshiTicker: 'KXHIGHTSEA',  location: 'Seattle, WA' },
+  { city: 'Denver',         stationId: 'KDEN', kalshiTicker: 'KXHIGHDEN',   location: 'Denver, CO' },
+  // Confirmed in live Kalshi API — not in original spec
+  { city: 'Miami',          stationId: 'KMIA', kalshiTicker: 'KXHIGHMIA',   location: 'Miami, FL' },
+  { city: 'Minneapolis',    stationId: 'KMSP', kalshiTicker: 'KXHIGHTMIN',  location: 'Minneapolis, MN' },
+  { city: 'Atlanta',        stationId: 'KATL', kalshiTicker: 'KXHIGHTTATL', location: 'Atlanta, GA' },
+  { city: 'Boston',         stationId: 'KBOS', kalshiTicker: 'KXHIGHTBOS',  location: 'Boston, MA' },
+  { city: 'Washington DC',  stationId: 'KDCA', kalshiTicker: 'KXHIGHTDC',   location: 'Washington, DC' },
+  { city: 'Las Vegas',      stationId: 'KLAS', kalshiTicker: 'KXHIGHTLV',   location: 'Las Vegas, NV' },
+  { city: 'New Orleans',    stationId: 'KMSY', kalshiTicker: 'KXHIGHTNOLA', location: 'New Orleans, LA' },
+  { city: 'Oklahoma City',  stationId: 'KOKC', kalshiTicker: 'KXHIGHTOKC',  location: 'Oklahoma City, OK' },
 ];
 
 // ============================================================================
@@ -222,10 +227,13 @@ async function fetchKalshiMarketPrice(ticker: string): Promise<number | null> {
     const market = data.market;
     if (!market) return null;
 
-    const priceCents = market.yes_ask_dollars ?? market.yes_bid_dollars ?? market.last_price_dollars ?? null;
+    // Field names per Kalshi API v2 spec (confirmed in Mia's tracking-spec-v3.md Section 4)
+    // Fields are in CENTS (integer, 0-100), NOT dollars
+    // Priority: yes_ask > last_price > yes_bid
+    const priceCents = market.yes_ask ?? market.last_price ?? market.yes_bid ?? null;
     if (priceCents === null || priceCents === undefined) return null;
 
-    return priceCents / 100; // Convert cents to probability
+    return priceCents / 100; // Convert cents to probability (0-1)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`  ⚠️  Kalshi fetch failed for ${ticker}: ${msg}`);

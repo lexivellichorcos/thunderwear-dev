@@ -115,6 +115,7 @@ interface GroupStats {
   totalPnl: number;
   avgPnl: number;
   expectedValuePerTrade: number;
+  insufficient_data?: boolean;  // true when fewer than 14 settled rows exist for this city
 }
 
 interface BacktestReport {
@@ -302,6 +303,12 @@ async function runBacktest(): Promise<void> {
     groups.get(key)!.push(t);
   }
 
+  // Count total settled rows per city (across all rows, not just signaled)
+  const settledRowsPerCity: Map<string, number> = new Map();
+  for (const row of allRows) {
+    settledRowsPerCity.set(row.city, (settledRowsPerCity.get(row.city) || 0) + 1);
+  }
+
   const groupStats: GroupStats[] = [];
 
   for (const [key, trades] of groups.entries()) {
@@ -315,7 +322,11 @@ async function runBacktest(): Promise<void> {
     const avgEdge = trades.reduce((sum, t) => sum + t.edge, 0) / trades.length;
     const avgKelly = trades.reduce((sum, t) => sum + t.kellyFraction, 0) / trades.length;
 
-    groupStats.push({
+    // Insufficient data guard: fewer than 14 settled rows for this city
+    const citySettledCount = settledRowsPerCity.get(city) || 0;
+    const insufficientData = citySettledCount < 14;
+
+    const stat: GroupStats = {
       city,
       tMinusBucket: tMinusBucketVal,
       month: parseInt(monthStr, 10),
@@ -327,7 +338,13 @@ async function runBacktest(): Promise<void> {
       totalPnl: Math.round(totalPnl * 10000) / 10000,
       avgPnl: Math.round((totalPnl / trades.length) * 10000) / 10000,
       expectedValuePerTrade: Math.round((totalPnl / trades.length) * 10000) / 10000,
-    });
+    };
+
+    if (insufficientData) {
+      stat.insufficient_data = true;
+    }
+
+    groupStats.push(stat);
   }
 
   // Sort: city asc, tMinus asc, month asc

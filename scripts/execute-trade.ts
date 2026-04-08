@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { evaluateBatchAlpha, ForecastInput } from './alpha-signal.js';
+import { VERIFIED_KALSHI_CITIES } from './city-registry.js';
 
 // Load .env manually (ESM-safe)
 try {
@@ -124,41 +125,19 @@ function getTomorrowDateString(): string {
 }
 
 /**
- * Build Kalshi ticker for a city/date:
- * KXHIGHNY-26APR08 → city=ny, date=2026-04-08
+ * Build Kalshi ticker for a city/date using the verified city registry.
+ * Returns null for unknown cities — do not trade.
+ * Example: New York + 2026-04-08 → KXHIGHNY-26APR08
  */
-function buildKalshiTicker(kalshiCode: string, targetDate: string): string {
-  // targetDate is YYYY-MM-DD
-  const dateObj = new Date(targetDate + 'T00:00:00Z');
-  const year = String(dateObj.getUTCFullYear()).slice(-2);
-  const monthAbbr = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][dateObj.getUTCMonth()];
-  const day = String(dateObj.getUTCDate()).padStart(2, '0');
-  return `KXHIGH${kalshiCode.toUpperCase()}-${year}${monthAbbr}${day}`;
+function buildKalshiTicker(cityName: string, targetDate: string): string {
+  const city = VERIFIED_KALSHI_CITIES.find(c => c.city === cityName);
+  if (!city) return null; // unknown city — do not trade
+  const date = new Date(targetDate + 'T00:00:00Z');
+  const year = String(date.getUTCFullYear()).slice(-2);
+  const monthAbbr = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][date.getUTCMonth()];
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${city.kalshiTicker}-${year}${monthAbbr}${day}`;
 }
-
-// Kalshi code mappings (city -> kalshi ticker code)
-const KALSHI_CODES: Record<string, string> = {
-  'New York': 'ny',
-  'Chicago': 'chi',
-  'Los Angeles': 'lax',
-  'Houston': 'hou',
-  'Phoenix': 'phx',
-  'Philadelphia': 'phil',
-  'San Antonio': 'satx',
-  'Dallas': 'dal',
-  'Austin': 'aus',
-  'San Francisco': 'sfo',
-  'Seattle': 'sea',
-  'Denver': 'den',
-  'Miami': 'mia',
-  'Minneapolis': 'min',
-  'Atlanta': 'atl',
-  'Boston': 'bos',
-  'Washington DC': 'dc',
-  'Las Vegas': 'lv',
-  'New Orleans': 'nola',
-  'Oklahoma City': 'okc',
-};
 
 // ============================================================================
 // Fetch forecasts for tomorrow + compute alpha signals
@@ -294,8 +273,11 @@ async function buildAlphaPairs(
   const commonStrikes = [75, 80, 85, 90]; // Common NYC/major city temperature strikes
 
   for (const forecast of forecasts) {
-    const kalshiCode = KALSHI_CODES[forecast.city] || forecast.city.toLowerCase().slice(0, 3);
-    const ticker = buildKalshiTicker(kalshiCode, forecast.target_date);
+    const ticker = buildKalshiTicker(forecast.city, forecast.target_date);
+    if (!ticker) {
+      console.log(`   ⏭️  Skipping unknown city: ${forecast.city}`);
+      continue;
+    }
 
     for (const strike of commonStrikes) {
       const twProb = computeTWProbability(forecast.predicted_temp, forecast.std_dev, strike);
@@ -314,7 +296,7 @@ async function buildAlphaPairs(
         },
         marketPrice: kalshiPrice,
         city: forecast.city,
-        kalshiCode,
+        kalshiCode: ticker.split('-')[0], // derived from verified ticker prefix
         ticker,
         strike,
       });

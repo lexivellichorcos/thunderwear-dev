@@ -1,0 +1,67 @@
+{
+  "auditedAt": "2026-04-07T18:56:00Z",
+  "method": "UI inspection + manual probe",
+  "findings": {
+    "CHICAGO": {
+      "expectedInRegistry": "KXHIGHCHI",
+      "expectedInTailScanner": "KXHIGHTCHI",
+      "actualFromKalshiUI": "KXHIGHCHI",
+      "confirmed": true,
+      "notes": "UI shows Series: KXHIGHCHI, Event: KXHIGHCHI-26APR07. Matches city-registry.ts. tail-scanner.ts is WRONG."
+    },
+    "LA": {
+      "expectedInRegistry": "KXHIGHLA",
+      "expectedInTailScanner": "KXHIGHTLA",
+      "actualFromKalshiUI": "KXHIGHLAX",
+      "confirmed": true,
+      "notes": "UI shows Series: KXHIGHLAX (NOT KXHIGHLA). Both city-registry.ts and tail-scanner.ts are WRONG. Should be KXHIGHLAX."
+    },
+    "NY": {
+      "ticker": "KXHIGHNY",
+      "notes": "Confirmed working in existing scripts. No discrepancy."
+    }
+  },
+  "requiredUpdates": {
+    "city-registry.ts": [
+      {
+        "city": "Los Angeles",
+        "currentValue": "KXHIGHLA",
+        "correctValue": "KXHIGHLAX",
+        "reason": "Kalshi UI confirms KXHIGHLAX is the actual series ticker"
+      }
+    ],
+    "tail-scanner.ts": [
+      {
+        "location": "KALSHI_STATIONS array, Chicago entry",
+        "currentValue": "KXHIGHTCHI",
+        "correctValue": "KXHIGHCHI",
+        "reason": "UI confirms KXHIGHCHI (matches city-registry.ts)"
+      },
+      {
+        "location": "KALSHI_STATIONS array, LA entry",
+        "currentValue": "KXHIGHTLA",
+        "correctValue": "KXHIGHLAX",
+        "reason": "UI confirms KXHIGHLAX (not KXHIGHTLA)"
+      }
+    ]
+  },
+  "priceFieldConfirmation": {
+    "status": "PENDING",
+    "reason": "Live API calls blocked by CORS in browser; would require server-side execution",
+    "expectedFields": [
+      "yes_ask",
+      "yes_ask_dollars",
+      "yes_bid",
+      "yes_bid_dollars",
+      "last_price",
+      "last_price_dollars"
+    ],
+    "note": "Run npx tsx scripts/audit-kalshi-markets.ts on server for full price field verification"
+  },
+  "apiBaseUrl": {
+    "current": "https://trading-api.kalshi.com/trade-api/v2",
+    "status": "DEPRECATED",
+    "newUrl": "https://api.elections.kalshi.com/trade-api/v2",
+    "note": "Old endpoint returns 401 with migration message. All weather markets (KXHIGH) accessible via new URL."
+  }
+}

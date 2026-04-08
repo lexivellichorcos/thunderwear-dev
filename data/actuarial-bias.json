@@ -1,0 +1,12 @@
+{
+  "stations": [
+    { "city": "NYC", "bias": 0.5, "status": "Well calibrated" },
+    { "city": "Chicago", "bias": -1.2, "status": "Slight bias" },
+    { "city": "LA", "bias": 0.2, "status": "Excellent" },
+    { "city": "Denver", "bias": -2.1, "status": "Under-predicting" },
+    { "city": "Miami", "bias": 1.8, "status": "Over-predicting" },
+    { "city": "SF", "bias": 0.1, "status": "Excellent" },
+    { "city": "Seattle", "bias": -0.9, "status": "Good" },
+    { "city": "Boston", "bias": 2.3, "status": "Over-predicting" }
+  ]
+}

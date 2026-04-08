@@ -1,0 +1,22 @@
+{
+  "signals": [
+    {
+      "ticker": "KXHIGHNY-26APR8-72",
+      "signalType": "TAKE_PROFIT",
+      "reason": "Target reached — edge eliminated",
+      "confidence": 0.92
+    },
+    {
+      "ticker": "KXHIGHLAX-26APR8-82",
+      "signalType": "STOP_LOSS",
+      "reason": "Forecast shifted — no longer bullish",
+      "confidence": 0.78
+    },
+    {
+      "ticker": "KXHIGHCHI-26APR8-65",
+      "signalType": "HOLD",
+      "reason": "Monitoring — still building edge",
+      "confidence": 0.65
+    }
+  ]
+}

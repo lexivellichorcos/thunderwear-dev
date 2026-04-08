@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "city": "New York",
+      "strikeTemp": 72,
+      "twProb": 68,
+      "marketPrice": 0.65,
+      "edge": 0.03,
+      "direction": "YES"
+    },
+    {
+      "city": "New York",
+      "strikeTemp": 75,
+      "twProb": 42,
+      "marketPrice": 0.45,
+      "edge": null,
+      "direction": null
+    },
+    {
+      "city": "Chicago",
+      "strikeTemp": 65,
+      "twProb": 55,
+      "marketPrice": 0.50,
+      "edge": 0.05,
+      "direction": "YES"
+    },
+    {
+      "city": "Los Angeles",
+      "strikeTemp": 82,
+      "twProb": 78,
+      "marketPrice": 0.72,
+      "edge": 0.06,
+      "direction": "YES"
+    },
+    {
+      "city": "Denver",
+      "strikeTemp": 58,
+      "twProb": 35,
+      "marketPrice": 0.38,
+      "edge": null,
+      "direction": null
+    }
+  ]
+}

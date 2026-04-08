@@ -1,0 +1,34 @@
+{
+  "opportunities": [
+    {
+      "ticker": "KXHIGHNY-26APR8-72",
+      "twProb": 0.68,
+      "marketPrice": 0.65,
+      "edge": 0.03,
+      "kellyPercent": 2.8,
+      "contracts": 50,
+      "confidence": "HIGH",
+      "direction": "YES"
+    },
+    {
+      "ticker": "KXHIGHLAX-26APR8-82",
+      "twProb": 0.78,
+      "marketPrice": 0.72,
+      "edge": 0.06,
+      "kellyPercent": 4.2,
+      "contracts": 75,
+      "confidence": "MEDIUM",
+      "direction": "YES"
+    },
+    {
+      "ticker": "KXHIGHCHI-26APR8-65",
+      "twProb": 0.55,
+      "marketPrice": 0.50,
+      "edge": 0.05,
+      "kellyPercent": 3.5,
+      "contracts": 40,
+      "confidence": "LOW",
+      "direction": "YES"
+    }
+  ]
+}
