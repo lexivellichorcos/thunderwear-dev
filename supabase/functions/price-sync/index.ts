@@ -48,7 +48,7 @@ Deno.serve(async (req)=>{
   } else {
     // Insert a new price_sync job
     const { data: inserted, error: insertErr } = await supabase.from("sync_queue").insert({
-      job_type: "price_sync",
+      job_type: "price_sync", payload: {},
       status: "processing"
     }).select("id").single();
     if (insertErr && insertErr.code === "23505") {
@@ -78,43 +78,37 @@ Deno.serve(async (req)=>{
     started_at: new Date().toISOString()
   }).eq("id", jobId);
   try {
-    // Fetch weather markets from Kalshi
-    const url = `${KALSHI_API}?limit=1000&status=open`;
-    const response = await fetch(url);
-    if (response.status === 429) {
-      // Rate limited — mark failed (will be retried if under max_attempts)
-      const { data: job } = await supabase.from("sync_queue").select("attempts, max_attempts").eq("id", jobId).single();
-      const attempts = (job?.attempts ?? 0) + 1;
-      if (attempts >= (job?.max_attempts ?? 3)) {
+    // Fetch weather markets from Kalshi — query by series_ticker for each city
+    // Public endpoint doesn't support category filter; must query per series
+    const WEATHER_SERIES = [
+      'KXHIGHNY','KXHIGHCHI','KXHIGHLAX','KXHIGHTHOU','KXHIGHTPHX',
+      'KXHIGHPHIL','KXHIGHTSATX','KXHIGHTDAL','KXHIGHAUS','KXHIGHTSFO',
+      'KXHIGHTSEA','KXHIGHDEN','KXHIGHTJAX','KXHIGHTNOLA','KXHIGHTATL',
+      'KXHIGHKC','KXHIGHTMIA','KXHIGHTBOS','KXHIGHTMIN','KXHIGHTDET',
+      'KXLOWNY','KXLOWCHI','KXLOWDEN','KXLOWMIA','KXLOWBOS','KXLOWMIN',
+    ];
+    const markets: Record<string, unknown>[] = [];
+    for (const series of WEATHER_SERIES) {
+      const url = `${KALSHI_API}?limit=50&status=open&series_ticker=${series}`;
+      const response = await fetch(url);
+      if (response.status === 429) {
+        const { data: job } = await supabase.from("sync_queue").select("attempts, max_attempts").eq("id", jobId).single();
+        const attempts = (job?.attempts ?? 0) + 1;
         await supabase.from("sync_queue").update({
-          status: "failed",
+          status: attempts >= (job?.max_attempts ?? 3) ? "failed" : "pending",
           attempts,
-          last_error: "Kalshi 429 rate limit — max attempts reached"
+          last_error: "Kalshi 429 rate limit"
         }).eq("id", jobId);
-      } else {
-        await supabase.from("sync_queue").update({
-          status: "pending",
-          attempts,
-          last_error: "Kalshi 429 rate limit — will retry"
-        }).eq("id", jobId);
+        return new Response(JSON.stringify({ retried: true, attempts }), {
+          status: 429,
+          headers: { 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload' }
+        });
       }
-      return new Response(JSON.stringify({
-        retried: true,
-        attempts
-      }), {
-        status: 429,
-        headers: { 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload' }
-      });
+      if (response.ok) {
+        const data = await response.json();
+        markets.push(...(data.markets ?? []));
+      }
     }
-    if (!response.ok) {
-      throw new Error(`Kalshi API returned ${response.status}: ${await response.text()}`);
-    }
-    const data = await response.json();
-    // Filter to climate/weather markets only (tickers start with KXHIGH or KXLOW)
-    const allMarkets = data.markets ?? [];
-    const markets = allMarkets.filter((m: { ticker: string }) =>
-      m.ticker?.startsWith('KXHIGH') || m.ticker?.startsWith('KXLOW')
-    );
     if (markets.length === 0) {
       await supabase.from("sync_queue").update({
         status: "completed",
@@ -130,10 +124,10 @@ Deno.serve(async (req)=>{
     // Upsert into market_prices
     const rows = markets.map((m)=>({
         ticker: m.ticker,
-        yes_price: m.yes_bid,
-        no_price: 100 - m.yes_bid,
-        volume: m.volume,
-        open_interest: m.open_interest,
+        yes_price: m.yes_bid !== undefined ? m.yes_bid : (m.yes_bid_dollars !== undefined ? Math.round(parseFloat(m.yes_bid_dollars) * 100) : (m.last_price_dollars !== undefined ? Math.round(parseFloat(m.last_price_dollars) * 100) : null)),
+        no_price: m.no_bid_dollars !== undefined ? Math.round(parseFloat(m.no_bid_dollars) * 100) : null,
+        volume: m.volume ?? m.open_interest_fp ?? null,
+        open_interest: m.open_interest ?? null,
         last_updated: new Date().toISOString()
       }));
     const { error: upsertErr } = await supabase.from("market_prices").upsert(rows, {
