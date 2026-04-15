@@ -108,6 +108,8 @@ Deno.serve(async (req)=>{
         const data = await response.json();
         markets.push(...(data.markets ?? []));
       }
+      // Small delay to avoid Kalshi rate limits (100 req/min)
+      await new Promise(r => setTimeout(r, 600));
     }
     if (markets.length === 0) {
       await supabase.from("sync_queue").update({
