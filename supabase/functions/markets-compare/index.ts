@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
       .select("station_id, target_date, predicted_temp_high, std_dev, created_at")
       .in("station_id", stationIds)
       .in("target_date", [today, tomorrow])
-      .order("created_at", { ascending: false });
+      .order("forecast_timestamp", { ascending: false });
 
     if (forecastErr) {
       console.warn(`[markets-compare] tw_hourly_forecasts query error: ${forecastErr.message}`);
@@ -163,14 +163,36 @@ Deno.serve(async (req: Request) => {
       console.warn("[markets-compare] tw_hourly_forecasts returned no rows for today/tomorrow");
     }
 
-    // ── Step 2: Build response ───────────────────────────────────────────────
+    // ── Step 2: Fetch Kalshi prices from market_prices ───────────────────────
+    // market_prices has tickers like KXHIGHNY-26APR15-B83.5
+    // We need to find the best-match ticker per city series
+    const { data: priceRows } = await supabase
+      .from("market_prices")
+      .select("ticker, yes_price, no_price")
+      .or(VERIFIED_KALSHI_CITIES.map(c => `ticker.like.${c.kalshiTicker}%`).join(","));
+
+    // Build a map: series prefix → best price (closest to 50¢ = most liquid)
+    const priceByPrefix = new Map<string, { yes_price: number; ticker: string }>();
+    for (const row of (priceRows ?? []) as any[]) {
+      const prefix = VERIFIED_KALSHI_CITIES.find(c => row.ticker?.startsWith(c.kalshiTicker))?.kalshiTicker;
+      if (!prefix || row.yes_price == null) continue;
+      const existing = priceByPrefix.get(prefix);
+      // Pick the market closest to 50¢ (most liquid / most relevant)
+      if (!existing || Math.abs(row.yes_price - 50) < Math.abs(existing.yes_price - 50)) {
+        priceByPrefix.set(prefix, { yes_price: row.yes_price, ticker: row.ticker });
+      }
+    }
+
+    // ── Step 3: Build response ───────────────────────────────────────────────
 
     const markets = VERIFIED_KALSHI_CITIES.map((cityDef) => {
       const forecast = forecastByStation.get(cityDef.stationId);
+      const priceData = priceByPrefix.get(cityDef.kalshiTicker);
 
       let twProbability: number | null = null;
       let twPredictedTemp: number | null = null;
       let targetDate: string | null = null;
+      const marketPrice = priceData?.yes_price ?? null;
 
       if (forecast) {
         twPredictedTemp = forecast.predicted_temp_high != null
@@ -178,21 +200,25 @@ Deno.serve(async (req: Request) => {
           : null;
         targetDate = forecast.target_date ?? null;
 
-        // Compute exceedance prob if we have forecast + can parse strike from ticker
-        const strike = parseStrikeFromTicker(cityDef.kalshiTicker);
+        const strike = parseStrikeFromTicker(priceData?.ticker ?? cityDef.kalshiTicker);
         if (twPredictedTemp != null && forecast.std_dev != null && forecast.std_dev > 0 && strike != null) {
           twProbability = exceedanceProb(twPredictedTemp, forecast.std_dev, strike);
         }
       }
+
+      const edgePp = twProbability != null && marketPrice != null
+        ? Math.round((twProbability - marketPrice) * 10) / 10
+        : null;
+      const direction = edgePp != null ? (edgePp > 0 ? "YES" : "NO") : null;
 
       return {
         city: cityDef.city,
         stationId: cityDef.stationId,
         kalshiTicker: cityDef.kalshiTicker,
         twProbability,
-        marketPrice: null,
-        edgePp: null,
-        direction: null,
+        marketPrice,
+        edgePp,
+        direction,
         twPredictedTemp,
         targetDate,
       };
