@@ -101,10 +101,15 @@ function exceedanceProb(predicted: number, stdDev: number, strike: number): numb
 // ── Strike parser from Kalshi ticker ─────────────────────────────────────────
 
 function parseStrikeFromTicker(ticker: string): number | null {
-  // Ticker format: KXHIGHNY-2604APR08-75 or KXHIGHNY-2604APR15-82
+  // Ticker formats:
+  //   KXHIGHNY-26APR15-B88.5  (bracket: high >= 88.5)
+  //   KXHIGHNY-26APR15-T83    (threshold: high >= 83)
+  //   KXHIGHNY-26APR15-82     (legacy integer)
   const parts = ticker.split("-");
   if (parts.length >= 3) {
-    const strike = parseInt(parts[parts.length - 1], 10);
+    const raw = parts[parts.length - 1]; // e.g. "B88.5" or "T83" or "82"
+    const stripped = raw.replace(/^[BT]/i, ""); // remove B or T prefix
+    const strike = parseFloat(stripped);
     return isNaN(strike) ? null : strike;
   }
   return null;
