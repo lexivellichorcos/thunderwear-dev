@@ -79,7 +79,7 @@ Deno.serve(async (req)=>{
   }).eq("id", jobId);
   try {
     // Fetch weather markets from Kalshi
-    const url = `${KALSHI_API}?limit=200&status=open&category=weather`;
+    const url = `${KALSHI_API}?limit=1000&status=open`;
     const response = await fetch(url);
     if (response.status === 429) {
       // Rate limited — mark failed (will be retried if under max_attempts)
@@ -110,7 +110,11 @@ Deno.serve(async (req)=>{
       throw new Error(`Kalshi API returned ${response.status}: ${await response.text()}`);
     }
     const data = await response.json();
-    const markets = data.markets ?? [];
+    // Filter to climate/weather markets only (tickers start with KXHIGH or KXLOW)
+    const allMarkets = data.markets ?? [];
+    const markets = allMarkets.filter((m: { ticker: string }) =>
+      m.ticker?.startsWith('KXHIGH') || m.ticker?.startsWith('KXLOW')
+    );
     if (markets.length === 0) {
       await supabase.from("sync_queue").update({
         status: "completed",
