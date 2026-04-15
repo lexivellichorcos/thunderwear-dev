@@ -128,8 +128,8 @@ Deno.serve(async (req)=>{
         ticker: m.ticker,
         yes_price: m.yes_bid !== undefined ? m.yes_bid : (m.yes_bid_dollars !== undefined ? Math.round(parseFloat(m.yes_bid_dollars) * 100) : (m.last_price_dollars !== undefined ? Math.round(parseFloat(m.last_price_dollars) * 100) : null)),
         no_price: m.no_bid_dollars !== undefined ? Math.round(parseFloat(m.no_bid_dollars) * 100) : null,
-        volume: m.volume ?? m.open_interest_fp ?? null,
-        open_interest: m.open_interest ?? null,
+        volume: m.volume != null ? Math.round(parseFloat(String(m.volume))) : (m.open_interest_fp != null ? Math.round(parseFloat(String(m.open_interest_fp))) : null),
+        open_interest: m.open_interest != null ? Math.round(parseFloat(String(m.open_interest))) : null,
         last_updated: new Date().toISOString()
       }));
     const { error: upsertErr } = await supabase.from("market_prices").upsert(rows, {
