@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: forecastRows, error: forecastErr } = await supabase
       .from("tw_hourly_forecasts")
-      .select("station_id, target_date, predicted_temp_high, std_dev, created_at")
+      .select("station_id, target_date, predicted_temp_high, std_dev, forecast_timestamp")
       .in("station_id", stationIds)
       .in("target_date", [today, tomorrow])
       .order("forecast_timestamp", { ascending: false });
