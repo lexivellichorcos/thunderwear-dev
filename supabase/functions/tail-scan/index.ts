@@ -246,8 +246,7 @@ Deno.serve(async (req: Request) => {
 
     // ── Step 2: Build full ticker list across all cities + strike range ───────
 
-    const targetDate = new Date();
-    targetDate.setUTCDate(targetDate.getUTCDate() + 1); // tomorrow
+    const targetDate = new Date(); // today's open markets (not tomorrow)
     const year   = String(targetDate.getUTCFullYear()).slice(-2);
     const monthAbbr = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][targetDate.getUTCMonth()];
     const day    = String(targetDate.getUTCDate()).padStart(2, "0");
@@ -346,7 +345,7 @@ Deno.serve(async (req: Request) => {
     const nowIso = new Date().toISOString();
 
     for (const meta of tickerMetas) {
-      const marketPrice = kalshiPrices.get(meta.ticker) ?? null;
+      const marketPrice = kalshiPrices.get(meta.ticker) ?? null; // already 0-1 decimal (divided in map)
       const edge = marketPrice !== null
         ? Math.abs(meta.twProbabilityDecimal - marketPrice)
         : null;
@@ -402,23 +401,22 @@ Deno.serve(async (req: Request) => {
       }
 
       rows.push({
-        ticker:                 meta.ticker,
-        kalshi_code:            meta.stationId.slice(1).toLowerCase(),
+        kalshi_ticker:          meta.ticker,
+        station_id:             meta.stationId,
         city:                   meta.city,
-        market_type:            "high",
-        settlement_date:        settlementDateStr,
-        strike_temp:            meta.strikeTemp,
-        tw_probability:         finalProbPct,
-        tw_probability_decimal: finalProb,
-        market_price:           marketPrice,
-        edge:                   bayesEdge,
+        target_date:            settlementDateStr,
+        strike:                 meta.strikeTemp,
+        tw_probability:         finalProb, // 0-1 decimal (column NUMERIC(5,4))
+        market_price:           marketPrice, // 0-1 decimal (column is NUMERIC(5,4))
+        edge_pp:                bayesEdge ? Math.round(bayesEdge * 10000) / 10000 : null, // store as decimal 0-1
         kelly_fraction:         bayesKelly,
-        std_dev:                meta.stdDev,
-        predicted_temp:         meta.predictedTemp,
+        direction:              bayesEdge && finalProb > (marketPrice ?? 0) ? 'yes' : 'no',
+        tw_std_dev:             meta.stdDev,
+        tw_predicted_temp:      meta.predictedTemp,
         ci_width:               meta.ciWidth,
         notes,
         scan_time:              nowIso,
-        created_at:             nowIso, // N1: always set created_at explicitly
+        created_at:             nowIso,
         prob_atr:               probAtr,
         stop_loss_price:        stopLossPrice,
         take_profit_price:      takeProfitPrice,
@@ -454,8 +452,9 @@ Deno.serve(async (req: Request) => {
 
         if (insertError) {
           console.error(
-            `[tail-scan] Insert batch ${Math.floor(i / BATCH_SIZE) + 1} failed: ${insertError.message}`
+            `[tail-scan] Insert batch ${Math.floor(i / BATCH_SIZE) + 1} failed: ${insertError.message} | code: ${insertError.code} | details: ${insertError.details}`
           );
+          throw new Error(`Insert failed: ${insertError.message} (${insertError.code})`);
         } else {
           rowsInserted += count ?? batch.length;
         }
@@ -486,7 +485,7 @@ Deno.serve(async (req: Request) => {
     // ── Step 8: Return summary ─────────────────────────────────────────────────
 
     const wideCI = rows.filter((r) => r.std_dev > 3);
-    const withEdge = rows.filter((r) => r.edge !== null && r.edge > 0.05);
+    const withEdge = rows.filter((r) => r.edge_pp !== null && r.edge_pp > 0.03);
     const withKelly = rows.filter((r) => r.kelly_fraction > 0);
 
     const summary = {

@@ -21,21 +21,35 @@ interface MetarAlert {
 }
 
 interface TailOpportunity {
-  ticker?: string;
+  // Supabase snake_case fields
+  kalshi_ticker?: string;
+  ticker?: string; // legacy fallback
   city?: string;
+  market_type?: string;
   marketType?: string;
-  strikeTemp?: number;
+  strike?: number;
+  strikeTemp?: number; // legacy fallback
+  tw_probability?: number;
   twProbability?: number;
-  twProbabilityDecimal?: number;
+  market_price?: number | null;
   marketPrice?: number | null;
+  edge_pp?: number | null;
   edge?: number | null;
+  kelly_fraction?: number;
   kellyFraction?: number;
   kellyPercent?: number;
+  tw_std_dev?: number;
   stdDev?: number;
+  tw_predicted_temp?: number;
   predictedTemp?: number;
+  ci_width?: number;
   ciWidth?: number;
   notes?: string;
+  scan_time?: string;
   scanTime?: string;
+  direction?: string;
+  stop_loss_price?: number | null;
+  take_profit_price?: number | null;
   isMispriced?: boolean;
 }
 
@@ -677,20 +691,20 @@ function TailOpportunitiesSection({ isDark }: { isDark: boolean }) {
               </TableHeader>
               <TableBody>
                 {opps.slice(0, rowsToShow).map((o, i) => {
-                  const kelly = o.kellyPercent ?? (o.kellyFraction != null ? o.kellyFraction * 100 : null);
+                  const kelly = o.kellyPercent ?? ((o.kelly_fraction ?? o.kellyFraction) != null ? (o.kelly_fraction ?? o.kellyFraction)! * 100 : null);
                   return (
                     <TableRow key={i} className={rowClass}>
-                      <TableCell className={`font-mono text-xs ${titleClass}`}>{o.ticker ?? '—'}</TableCell>
+                      <TableCell className={`font-mono text-xs ${titleClass}`}>{o.kalshi_ticker ?? o.ticker ?? '—'}</TableCell>
                       <TableCell className={`text-center ${titleClass}`}>{o.city ?? '—'}</TableCell>
-                      <TableCell className={`text-right ${titleClass}`}>{o.strikeTemp != null ? `${o.strikeTemp}°F` : '—'}</TableCell>
+                      <TableCell className={`text-right ${titleClass}`}>{(o.strike ?? o.strikeTemp) != null ? `${(o.strike ?? o.strikeTemp)}°F` : '—'}</TableCell>
                       <TableCell className="text-right font-mono font-semibold">
                         {kelly != null ? <span className={kellyColor(kelly)}>{kelly.toFixed(1)}%</span> : '—'}
                       </TableCell>
                       <TableCell className={`text-right font-mono font-medium ${edgeColor(o.edge)}`}>
-                        {o.edge != null ? `${(o.edge * 100).toFixed(1)}%` : '—'}
+                        {(o.edge_pp ?? o.edge) != null ? `${((o.edge_pp ?? o.edge)! * 100).toFixed(1)}%` : '—'}
                       </TableCell>
-                      <TableCell className={`text-right font-mono ${mutedClass}`}>{o.twProbability != null ? `${o.twProbability}%` : '—'}</TableCell>
-                      <TableCell className={`text-right font-mono ${mutedClass}`}>{o.marketPrice != null ? `${(o.marketPrice * 100).toFixed(0)}¢` : '—'}</TableCell>
+                      <TableCell className={`text-right font-mono ${mutedClass}`}>{(o.tw_probability ?? o.twProbability) != null ? `${((o.tw_probability ?? o.twProbability)! * 100).toFixed(0)}%` : '—'}</TableCell>
+                      <TableCell className={`text-right font-mono ${mutedClass}`}>{(o.market_price ?? o.marketPrice) != null ? `${((o.market_price ?? o.marketPrice)! * 100).toFixed(0)}¢` : '—'}</TableCell>
                       <TableCell className="text-center">{mispricedBadge(o.isMispriced)}</TableCell>
                     </TableRow>
                   );
