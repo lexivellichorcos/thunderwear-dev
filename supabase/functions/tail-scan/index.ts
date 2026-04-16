@@ -116,6 +116,24 @@ interface SkippedMarket {
 
 // Kalshi API fetch functions removed — prices now sourced from market_prices table
 
+// ── Prob ATR helper (shared with bayesian-update) ────────────────────────────
+
+async function computeProbAtr(supabase: ReturnType<typeof createClient>, ticker: string): Promise<number> {
+  const { data } = await supabase
+    .from("bayesian_estimates")
+    .select("posterior_prob")
+    .eq("market_ticker", ticker)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  if (!data || data.length < 3) return 0.05;
+
+  const probs = data.map((r: any) => r.posterior_prob);
+  const mean = probs.reduce((a: number, b: number) => a + b, 0) / probs.length;
+  const variance = probs.reduce((s: number, p: number) => s + Math.pow(p - mean, 2), 0) / (probs.length - 1);  // sample variance (÷n-1)
+  return Math.sqrt(variance);
+}
+
 // ── TW forecast fetch ─────────────────────────────────────────────────────────
 
 interface ForecastRow {
@@ -192,6 +210,10 @@ interface TailOpportunityRow {
   notes: string;
   scan_time: string;
   created_at: string;              // N1: explicit created_at for stale-clear DELETE
+  prob_atr: number | null;
+  stop_loss_price: number | null;
+  take_profit_price: number | null;
+  risk_reward_ratio: number;
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -339,6 +361,46 @@ Deno.serve(async (req: Request) => {
           ? `Wide CI (stdDev=${meta.stdDev}°F, width=${meta.ciWidth}°F) — potential mispricing`
           : `CI width=${meta.ciWidth}°F`) + kellyNote;
 
+      // ── Bayesian estimate lookup ────────────────────────────────────────────
+      // If a recent (<2h) Bayesian posterior exists for this ticker, prefer it over raw TW.
+      let finalProb = meta.twProbabilityDecimal;
+      try {
+        const { data: bayesRow } = await supabase
+          .from("bayesian_estimates")
+          .select("posterior_prob, created_at")
+          .eq("market_ticker", meta.ticker)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (bayesRow && (Date.now() - new Date(bayesRow.created_at).getTime()) < 2 * 60 * 60 * 1000) {
+          finalProb = bayesRow.posterior_prob;
+        }
+      } catch {
+        // bayesian_estimates table may not exist yet — fall back to raw TW
+      }
+
+      const finalProbPct = Math.round(finalProb * 100);
+      const bayesEdge = marketPrice !== null ? Math.abs(finalProb - marketPrice) : null;
+      const bayesKelly = computeKelly(finalProb, marketPrice);
+
+      // ── ATR-scaled exits ──────────────────────────────────────────────────────
+      let probAtr: number | null = null;
+      let stopLossPrice: number | null = null;
+      let takeProfitPrice: number | null = null;
+
+      if (marketPrice !== null && finalProb > 0) {
+        try {
+          probAtr = await computeProbAtr(supabase, meta.ticker);
+          const slRaw = marketPrice - 1.5 * probAtr;    // market price minus 1.5σ
+          const tpRaw = marketPrice + 3.0 * probAtr;    // market price plus 3.0σ
+          stopLossPrice = +Math.max(0, Math.min(1, slRaw)).toFixed(4);
+          takeProfitPrice = +Math.max(0, Math.min(1, tpRaw)).toFixed(4);
+        } catch {
+          // Non-fatal — ATR computation failure shouldn't kill the scan
+        }
+      }
+
       rows.push({
         ticker:                 meta.ticker,
         kalshi_code:            meta.stationId.slice(1).toLowerCase(),
@@ -346,17 +408,21 @@ Deno.serve(async (req: Request) => {
         market_type:            "high",
         settlement_date:        settlementDateStr,
         strike_temp:            meta.strikeTemp,
-        tw_probability:         meta.twProbability,
-        tw_probability_decimal: meta.twProbabilityDecimal,
+        tw_probability:         finalProbPct,
+        tw_probability_decimal: finalProb,
         market_price:           marketPrice,
-        edge,
-        kelly_fraction:         kellyFraction,
+        edge:                   bayesEdge,
+        kelly_fraction:         bayesKelly,
         std_dev:                meta.stdDev,
         predicted_temp:         meta.predictedTemp,
         ci_width:               meta.ciWidth,
         notes,
         scan_time:              nowIso,
         created_at:             nowIso, // N1: always set created_at explicitly
+        prob_atr:               probAtr,
+        stop_loss_price:        stopLossPrice,
+        take_profit_price:      takeProfitPrice,
+        risk_reward_ratio:      2.0,
       });
     }
 
